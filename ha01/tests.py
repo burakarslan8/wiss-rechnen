@@ -1,7 +1,7 @@
 
 import numpy as np
 import unittest
-from main import rotation_matrix, matrix_multiplication, compare_multiplication, inverse_rotation
+from main import rotation_matrix, matrix_multiplication, compare_multiplication, inverse_rotation, machine_epsilon
 
 class Tests(unittest.TestCase):
 
@@ -17,8 +17,9 @@ class Tests(unittest.TestCase):
             self.assertTrue(np.allclose(r[0], r[1]))
 
     def test_machine_epsilon(self):
-        pass
         # TODO
+        eps_float32 = machine_epsilon(np.float32)
+        self.assertAlmostEqual(eps_float32, np.finfo(np.float32).eps, places=6, msg="Incorrect machine epsilon for float32")
         
     def test_is_close(self):
         pass

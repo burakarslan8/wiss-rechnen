@@ -119,12 +119,12 @@ def machine_epsilon(fp_format: np.dtype) -> np.number:
     """
 
     # TODO: create epsilon element with correct initial value and data format fp_format
-    eps = fp_format.type(1.0)
+    eps = fp_format(1.0)
 
 
     # Create necessary variables for iteration
-    one = fp_format.type(1.0)
-    two = fp_format.type(2.0)
+    one = fp_format(1.0)
+    two = fp_format(2.0)
     i = 0
 
     print('  i  |       2^(-i)        |  1 + 2^(-i)  ')
@@ -133,6 +133,7 @@ def machine_epsilon(fp_format: np.dtype) -> np.number:
     # TODO: determine machine precision without the use of numpy.finfo()
     while eps + one > one:
         eps = eps / two
+        i +=1
 
     eps = eps * two
 
