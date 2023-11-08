@@ -119,12 +119,12 @@ def machine_epsilon(fp_format: np.dtype) -> np.number:
     """
 
     # TODO: create epsilon element with correct initial value and data format fp_format
-    eps = fp_format(1.0)
+    eps = fp_format.type(1.0)
 
 
     # Create necessary variables for iteration
-    one = fp_format(1.0)
-    two = fp_format(2.0)
+    one = fp_format.type(1.0)
+    two = fp_format.type(2.0)
     i = 0
 
     print('  i  |       2^(-i)        |  1 + 2^(-i)  ')
@@ -153,7 +153,7 @@ def close(a: np.ndarray, b: np.ndarray, eps: np.number=1e-08) -> bool:
 
     Return:
     c : if a is close to b (within the tolerance)
-
+eps >= 
     Raised Exceptions:
     ValueError: if matrix sizes are incompatible
 
@@ -168,7 +168,10 @@ def close(a: np.ndarray, b: np.ndarray, eps: np.number=1e-08) -> bool:
         raise ValueError("The matrices aren't comparable!")
     
     # TODO: check if all entries in a are close to the corresponding entry in b
-    isclose = np.all(eps >= np.abs(a-b))
+    if np.all(eps >= np.abs(a-b)):
+        isclose = True
+    else:
+        isclose = False
 
     return isclose
 
