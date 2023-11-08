@@ -28,12 +28,18 @@ class Tests(unittest.TestCase):
         self.assertFalse(close(a, b, eps=0.001), msg="Matrices should not be considered close")
         
     def test_rotation_matrix(self):
-        pass
         # TODO
+        expected_result = np.array([[np.cos(np.pi/4), -np.sin(np.pi/4)],
+                                   [np.sin(np.pi/4), np.cos(np.pi/4)]])
+        result = rotation_matrix(45)
+        np.testing.assert_allclose(result, expected_result, rtol=1e-10, atol=1e-10)
 
     def test_inverse_rotation(self):
-        pass
         # TODO
+        expected_result = np.array([[np.cos(np.pi/4), np.sin(np.pi/4)],
+                                   [-np.sin(np.pi/4), np.cos(np.pi/4)]])
+        result = inverse_rotation(45)
+        np.testing.assert_allclose(result, expected_result, rtol=1e-10, atol=1e-10)
 
 
 if __name__ == '__main__':
