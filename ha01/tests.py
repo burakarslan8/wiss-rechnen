@@ -1,7 +1,7 @@
 
 import numpy as np
 import unittest
-from main import rotation_matrix, matrix_multiplication, compare_multiplication, inverse_rotation, machine_epsilon
+from main import rotation_matrix, matrix_multiplication, compare_multiplication, inverse_rotation, machine_epsilon, close
 
 class Tests(unittest.TestCase):
 
@@ -22,8 +22,10 @@ class Tests(unittest.TestCase):
         self.assertAlmostEqual(eps_float32, np.finfo(np.float32).eps, places=6, msg="Incorrect machine epsilon for float32")
         
     def test_is_close(self):
-        pass
         # TODO
+        a = np.array([1.0, 2.0, 3.0])
+        b = np.array([1.01, 2.02, 3.03])
+        self.assertFalse(close(a, b, eps=0.001), msg="Matrices should not be considered close")
         
     def test_rotation_matrix(self):
         pass

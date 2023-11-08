@@ -164,8 +164,11 @@ def close(a: np.ndarray, b: np.ndarray, eps: np.number=1e-08) -> bool:
     """
     isclose = False
     # TODO: check if a and b are compareable
-
+    if a.shape != b.shape:
+        raise ValueError("The matrices aren't comparable!")
+    
     # TODO: check if all entries in a are close to the corresponding entry in b
+    isclose = np.all(eps >= np.abs(a-b))
 
     return isclose
 
