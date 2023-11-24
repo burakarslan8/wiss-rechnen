@@ -254,13 +254,11 @@ def compute_tomograph(n_shots: np.int64, n_rays: np.int64, n_grid: np.int64) -> 
     Forbidden:
     """
 
-    n_shots = int(2**np.ceil(np.log2(n_shots)))
-    n_grid = int(2**np.ceil(np.log2(n_grid)))
     # Setup the system describing the image reconstruction
     [L, g] = setup_system_tomograph(n_shots, n_rays, n_grid)
 
     # TODO: Solve for tomographic image using your Cholesky solver
-    regularization = np.finfo(dtype=np.float64).eps * 10
+    regularization = (np.finfo(np.float64).eps) * 10
     regularized_matrix = np.dot(L.T, L) + regularization * np.eye(L.shape[1])
     cholesky_factor = compute_cholesky(regularized_matrix)
     tim = solve_cholesky(cholesky_factor, np.dot(L.T, g))
