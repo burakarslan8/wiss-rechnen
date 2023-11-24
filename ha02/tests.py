@@ -34,9 +34,9 @@ class Tests(unittest.TestCase):
         print("Start time: " + str(t.hour) + ":" + str(t.minute) + ":" + str(t.second))
 
         # Compute tomographic image
-        n_shots = 64  # 128
-        n_rays = 64  # 128
-        n_grid = 32  # 64
+        n_shots = 128 # 128
+        n_rays = 128 # 128
+        n_grid = 64 # 64
         tim = compute_tomograph(n_shots, n_rays, n_grid)
 
         t = datetime.datetime.now()
