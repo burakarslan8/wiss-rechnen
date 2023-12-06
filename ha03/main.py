@@ -147,9 +147,15 @@ def accumulated_energy(singular_values: np.ndarray, threshold: float = 0.8) -> i
     """
 
     # TODO: Normalize singular value magnitudes
+    singular_values = singular_values / np.linalg.norm(singular_values)
 
     k = 0
+
     # TODO: Determine k that first k singular values make up threshold percent of magnitude
+    for i in range(len(singular_values)):
+        if np.sum(singular_values[:i]) > sum(singular_values) * threshold:
+            k = i
+            break
 
     return k
 
@@ -168,10 +174,11 @@ def project_faces(pcs: np.ndarray, images: list, mean_data: np.ndarray) -> np.nd
     """
 
     # TODO: initialize coefficients array with proper size
-    coefficients = np.zeros((1, 1))
+    coefficients = np.zeros((len(images), pcs.shape[0]))
 
     # TODO: iterate over images and project each normalized image into principal component basis
-
+    for i in range(len(images)):
+        coefficients[i] = pcs.dot((images[i].flatten() - mean_data).transpose())
 
     return coefficients
 
@@ -195,16 +202,18 @@ np.ndarray, list, np.ndarray):
     """
 
     # TODO: load test data set
-    imgs_test = []
+    imgs_test, dim_x, dim_y = load_images(path_test)
 
     # TODO: project test data set into eigenbasis
-    coeffs_test = np.zeros(coeffs_train.shape)
-
+    coeffs_test = project_faces(pcs, imgs_test, mean_data)
 
     # TODO: Initialize scores matrix with proper size
-    scores = np.zeros((1, 1))
+    scores = np.zeros((coeffs_train.shape[0], coeffs_test.shape[0]))
     # TODO: Iterate over all images and calculate pairwise correlation
-
+    for i in range(coeffs_train.shape[0]):
+        for j in range(coeffs_test.shape[0]):
+            scores[i, j] = np.arccos(
+                coeffs_train[i].dot(coeffs_test[j]) / (np.linalg.norm(coeffs_train[i]) * np.linalg.norm(coeffs_test[j])))
 
     return scores, imgs_test, coeffs_test
 
