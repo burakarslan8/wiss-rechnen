@@ -19,10 +19,19 @@ def lagrange_interpolation(x: np.ndarray, y: np.ndarray) -> (np.poly1d, list):
 
     assert (x.size == y.size)
 
+    n = x.size
     polynomial = np.poly1d(0)
     base_functions = []
 
     # TODO: Generate Lagrange base polynomials and interpolation polynomial
+
+    for i in range(n):
+        base = np.poly1d([1])
+        for j in range(n):
+            if j != i:
+                base *= np.poly1d([1, -x[j]]) / (x[i] - x[j])
+        base_functions.append(base)
+        polynomial += y[i] * base
 
     return polynomial, base_functions
 
@@ -46,6 +55,8 @@ def hermite_cubic_interpolation(x: np.ndarray, y: np.ndarray, yp: np.ndarray) ->
 
     spline = []
     # TODO compute piecewise interpolating cubic polynomials
+
+
     return spline
 
 
@@ -69,11 +80,28 @@ def natural_cubic_interpolation(x: np.ndarray, y: np.ndarray) -> list:
     assert (x.size == y.size)
     # TODO construct linear system with natural boundary conditions
 
+    n = len(x)
+    h = np.diff(x)
+    al = np.array([(3/h[i])*(y[i+1]-y[i]) - (3/h[i-1])*(y[i]-y[i-1]) for i in range(1, n-1)])
+
+    linear_system = np.zeros((n-2, n-2))
+    np.fill_diagonal(linear_system, 2*(h[:-1] + h[1:]))
+    for i in range(n-3):
+        linear_system[i, i+1] = h[i+1]
+        linear_system[i+1, i] = h[i+1]
+
     # TODO solve linear system for the coefficients of the spline
+    m = np.zeros(n)
+    m[1:-1] = np.linalg.solve(linear_system, al)
 
     spline = []
     # TODO extract local interpolation coefficients from solution
-
+    for i in range(n-1):
+        a = (m[i+1]-m[i])/(6*h[i])
+        b = m[i]/2
+        c = -(h[i]*m[i+1])/6 - (h[i]*m[i])/3 + (y[i+1]-y[i])/h[i]
+        d = y[i]
+        spline.append(np.poly1d([a, b, c, d]))
 
     return spline
 
@@ -92,12 +120,35 @@ def periodic_cubic_interpolation(x: np.ndarray, y: np.ndarray) -> list:
 
     assert (x.size == y.size)
     # TODO: construct linear system with periodic boundary conditions
+    n = len(x) - 1
+    h = np.diff(x)
+    u = np.zeros(n)
+    v = np.zeros(n)
+    u[1] = 2 * (h[0] + h[1])
+    v[1] = 6 * (y[2] - y[1]) / h[1] - 6 * (y[1] - y[0]) / h[0]
+
+    for i in range(2, n):
+        u[i] = 2 * (h[i - 1] + h[i]) - (h[i - 1] ** 2) / u[i - 1]
+        v[i] = 6 * (y[i + 1] - y[i]) / h[i] - 6 * (y[i] - y[i - 1]) / h[i - 1] - (h[i - 1] * v[i - 1]) / u[i - 1]
+
 
     # TODO solve linear system for the coefficients of the spline
+    m = np.zeros(n + 1)
+    m[n] = (v[n - 1] - h[n - 1] * m[0]) / u[n - 1]
+
+    for i in range(n - 1, 0, -1):
+        m[i] = (v[i] - h[i] * m[i + 1]) / u[i]
+
 
     spline = []
-    # TODO extract local interpolation coefficients from solution
 
+    # TODO extract local interpolation coefficients from solution
+    for i in range(n):
+        a = (m[i + 1] - m[i]) / (6 * h[i])
+        b = m[i] / 2
+        c = -(h[i] * m[i + 1]) / 6 - (h[i] * m[i]) / 3 + (y[i + 1] - y[i]) / h[i]
+        d = y[i]
+        spline.append(np.poly1d([a, b, c, d]))
 
     return spline
 
