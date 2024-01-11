@@ -86,34 +86,38 @@ def natural_cubic_interpolation(x: np.ndarray, y: np.ndarray) -> list:
     Return:
     spline: list of np.poly1d objects, each interpolating the function between two adjacent points
     """
-    print(y)
     
     assert (x.size == y.size)
     # TODO construct linear system with natural boundary conditions
+    n = x.size
+    system_matrix = np.zeros((4*n-4, 4*n-4))
+    right_hand_side = np.zeros(4*n-4)
 
-    n = len(x)
-    h = np.diff(x)
-    al = np.array([(3/h[i])*(y[i+1]-y[i]) - (3/h[i-1])*(y[i]-y[i-1]) for i in range(1, n-1)])
-
-    linear_system = np.zeros((n-2, n-2))
-    np.fill_diagonal(linear_system, 2*(h[:-1] + h[1:]))
-    for i in range(n-3):
-        linear_system[i, i+1] = h[i+1]
-        linear_system[i+1, i] = h[i+1]
+    for i in range(n-1):
+        system_matrix[i, 4*i:4*i+4] = [x[i] ** 3, x[i] ** 2, x[i], 1]
+        right_hand_side[i] = y[i]
+        system_matrix[i+n-1, 4*i:4*i+4] = [x[i+1] ** 3, x[i+1] ** 2, x[i+1], 1]
+        right_hand_side[i+n-1] = y[i+1]
+    
+    for i in range(n-2):
+        system_matrix[2*n-2+i, 4*i:4*i+8] = [3 * x[i+1] ** 2, 2 * x[i+1], 1, 0, -3 * x[i+1] ** 2, -2 * x[i+1], -1, 0]
+        system_matrix[3*n-4+i, 4*i:4*i+8] = [6 * x[i+1], 2, 0, 0, -6 * x[i+1], -2, 0, 0]
+    
+    system_matrix[4*n-6, 0:4] = [6 * x[0], 2, 0, 0]
+    system_matrix[4*n-5, -4:] = [6 * x[-1], 2, 0, 0]
+    right_hand_side[4*n-6] = 0
+    right_hand_side[4*n-5] = 0
 
     # TODO solve linear system for the coefficients of the spline
-    m = np.zeros(n)
-    m[1:-1] = np.linalg.solve(linear_system, al)
+
+    solution = np.linalg.solve(system_matrix, right_hand_side)
+    print("solution=", solution)
 
     spline = []
     # TODO extract local interpolation coefficients from solution
+    
     for i in range(n-1):
-        a = (m[i+1]-m[i])/(6*h[i])
-        b = m[i]/2
-        c = -(h[i]*m[i+1])/6 - (h[i]*m[i])/3 + (y[i+1]-y[i])/h[i]
-        d = y[i]
-        spline.append(np.poly1d([a, b, c, d]))
-
+        spline.append(np.poly1d(solution[4*i:4*i+4]))
     return spline
 
 
