@@ -56,6 +56,17 @@ def hermite_cubic_interpolation(x: np.ndarray, y: np.ndarray, yp: np.ndarray) ->
     spline = []
     # TODO compute piecewise interpolating cubic polynomials
 
+    A = np.zeros((4, 4))
+
+    for i in range(x.size - 1):
+        A[0, :] = [x[i] ** 3, x[i] ** 2, x[i], 1]
+        A[1, :] = [x[i + 1] ** 3, x[i + 1] ** 2, x[i + 1], 1]
+        A[2, :] = [3 * x[i] ** 2, 2 * x[i], 1, 0]
+        A[3, :] = [3 * x[i + 1] ** 2, 2 * x[i + 1], 1, 0]
+
+        b = np.array([y[i], y[i + 1], yp[i], yp[i + 1]])
+        c = np.linalg.solve(A, b)
+        spline.append(np.poly1d(c))
 
     return spline
 
