@@ -115,7 +115,7 @@ def natural_cubic_interpolation(x: np.ndarray, y: np.ndarray) -> list:
 
     spline = []
     # TODO extract local interpolation coefficients from solution
-    
+
     for i in range(n-1):
         spline.append(np.poly1d(solution[4*i:4*i+4]))
     return spline
@@ -135,35 +135,39 @@ def periodic_cubic_interpolation(x: np.ndarray, y: np.ndarray) -> list:
 
     assert (x.size == y.size)
     # TODO: construct linear system with periodic boundary conditions
-    n = len(x) - 1
-    h = np.diff(x)
-    u = np.zeros(n)
-    v = np.zeros(n)
-    u[1] = 2 * (h[0] + h[1])
-    v[1] = 6 * (y[2] - y[1]) / h[1] - 6 * (y[1] - y[0]) / h[0]
+    n = x.size
+    system_matrix = np.zeros((4*n-4, 4*n-4))
+    right_hand_side = np.zeros(4*n-4)
 
-    for i in range(2, n):
-        u[i] = 2 * (h[i - 1] + h[i]) - (h[i - 1] ** 2) / u[i - 1]
-        v[i] = 6 * (y[i + 1] - y[i]) / h[i] - 6 * (y[i] - y[i - 1]) / h[i - 1] - (h[i - 1] * v[i - 1]) / u[i - 1]
+    for i in range(n-1):
+        system_matrix[i, 4*i:4*i+4] = [x[i] ** 3, x[i] ** 2, x[i], 1]
+        right_hand_side[i] = y[i]
+        system_matrix[i+n-1, 4*i:4*i+4] = [x[i+1] ** 3, x[i+1] ** 2, x[i+1], 1]
+        right_hand_side[i+n-1] = y[i+1]
+    
+    for i in range(n-2):
+        system_matrix[2*n-2+i, 4*i:4*i+8] = [3 * x[i+1] ** 2, 2 * x[i+1], 1, 0, -3 * x[i+1] ** 2, -2 * x[i+1], -1, 0]
+        system_matrix[3*n-4+i, 4*i:4*i+8] = [6 * x[i+1], 2, 0, 0, -6 * x[i+1], -2, 0, 0]
+    
+    system_matrix[4*n-6, 0:4] = [3*x[0]**2, 2*x[0], 1, 0]
+    system_matrix[4*n-5, 0:4] = [6*x[0], 2, 0, 0]
+    system_matrix[4*n-6, -4:] = [-3*x[-1]**2, -2*x[-1], -1, 0]
+    system_matrix[4*n-5, -4:] = [-6*x[-1], -2, 0, 0]
+    right_hand_side[4*n-6] = 0
+    right_hand_side[4*n-5] = 0
 
 
     # TODO solve linear system for the coefficients of the spline
-    m = np.zeros(n + 1)
-    m[n] = (v[n - 1] - h[n - 1] * m[0]) / u[n - 1]
 
-    for i in range(n - 1, 0, -1):
-        m[i] = (v[i] - h[i] * m[i + 1]) / u[i]
-
+    solution = np.linalg.solve(system_matrix, right_hand_side)
+    print("solution=", solution)
 
     spline = []
 
     # TODO extract local interpolation coefficients from solution
-    for i in range(n):
-        a = (m[i + 1] - m[i]) / (6 * h[i])
-        b = m[i] / 2
-        c = -(h[i] * m[i + 1]) / 6 - (h[i] * m[i]) / 3 + (y[i + 1] - y[i]) / h[i]
-        d = y[i]
-        spline.append(np.poly1d([a, b, c, d]))
+
+    for i in range(n-1):
+        spline.append(np.poly1d(solution[4*i:4*i+4]))
 
     return spline
 
