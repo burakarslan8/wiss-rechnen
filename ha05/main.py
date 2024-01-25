@@ -186,14 +186,14 @@ def low_pass_filter(adata: np.ndarray, bandlimit: int = 1000, sampling_rate: int
     bandlimit_index = int(bandlimit*adata.size/sampling_rate)
 
     # TODO: compute Fourier transform of input data
-    adata_fft = fft(adata)
+    adata_fft = np.fft.fft(adata)
 
     # TODO: set high frequencies above bandlimit to zero, make sure the almost symmetry of the transform is respected.
-    adata_fft[bandlimit_index:-bandlimit_index] = 0
+    adata_fft[bandlimit_index+1:-bandlimit_index] = 0
 
     # TODO: compute inverse transform and extract real component
     adata_filtered = np.zeros(adata.shape[0])
-    adata_filtered = np.real(fft(adata_fft))
+    adata_filtered = np.real(np.fft.ifft(adata_fft))
 
     return adata_filtered
 
