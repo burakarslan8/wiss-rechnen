@@ -47,6 +47,8 @@ def is_unitary(matrix: np.ndarray) -> bool:
     """
     unitary = True
     # TODO: check that F is unitary, if not return false
+    if not np.allclose(np.eye(matrix.shape[0]),np.linalg.inv(np.transpose(matrix))@matrix):
+        unitary = False
 
     return unitary
 
@@ -69,6 +71,11 @@ def create_harmonics(n: int = 128) -> (list, list):
     fsigs = []
 
     # TODO: create signals and extract harmonics out of DFT matrix
+    for i in range(n):
+        sig = np.zeros(n)
+        sig[i] = 1
+        sigs.append(sig)
+        fsigs.append(dft_matrix(n)@sig)
 
     return sigs, fsigs
 
