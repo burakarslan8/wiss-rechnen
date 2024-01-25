@@ -95,6 +95,11 @@ def shuffle_bit_reversed_order(data: np.ndarray) -> np.ndarray:
     """
 
     # TODO: implement shuffling by reversing index bits
+    n = data.size
+    for i in range(n):
+        j = int('{:0{width}b}'.format(i, width=int(np.log2(n)))[::-1],2)
+        if j>i:
+            data[i],data[j] = data[j],data[i]
     
     return data
 
@@ -125,11 +130,18 @@ def fft(data: np.ndarray) -> np.ndarray:
         raise ValueError
 
     # TODO: first step of FFT: shuffle data
-
+    fdata = shuffle_bit_reversed_order(fdata)
 
     # TODO: second step, recursively merge transforms
+    for m in range(int(np.log2(n))):
+        for i in range(0,n,2**(m+1)):
+            for j in range(2**m):
+                k = i+j
+                p = np.exp(-2j*np.pi*j/2**(m+1))
+                fdata[k],fdata[k+2**m] = fdata[k]+p*fdata[k+2**m],fdata[k]-p*fdata[k+2**m]
 
     # TODO: normalize fft signal
+    fdata = fdata/np.sqrt(n)
 
     return fdata
 
@@ -152,6 +164,7 @@ def generate_tone(f: float = 261.626, num_samples: int = 44100) -> np.ndarray:
     data = np.zeros(num_samples)
 
     # TODO: Generate sine wave with proper frequency
+    data = np.sin(2*np.pi*f*np.linspace(x_min,x_max,num_samples))
 
     return data
 
@@ -173,11 +186,14 @@ def low_pass_filter(adata: np.ndarray, bandlimit: int = 1000, sampling_rate: int
     bandlimit_index = int(bandlimit*adata.size/sampling_rate)
 
     # TODO: compute Fourier transform of input data
+    adata_fft = fft(adata)
 
     # TODO: set high frequencies above bandlimit to zero, make sure the almost symmetry of the transform is respected.
+    adata_fft[bandlimit_index:-bandlimit_index] = 0
 
     # TODO: compute inverse transform and extract real component
     adata_filtered = np.zeros(adata.shape[0])
+    adata_filtered = np.real(fft(adata_fft))
 
     return adata_filtered
 
