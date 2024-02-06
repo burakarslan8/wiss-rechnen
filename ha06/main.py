@@ -23,6 +23,7 @@ def find_root_bisection(f: object, lival: np.floating, rival: np.floating, ival_
     assert (rival > lival)
 
     # TODO: set meaningful minimal interval size if not given as parameter, e.g. 10 * eps
+    ival_size = 10 * np.finfo(np.float64).eps
 
     # intialize iteration
     fl = f(lival)
@@ -33,10 +34,24 @@ def find_root_bisection(f: object, lival: np.floating, rival: np.floating, ival_
 
     n_iterations = 0
     # TODO: loop until final interval is found, stop if max iterations are reached
+    for i in range(n_iters_max):
+        fmid= f((lival + rival) / 2)
+        if fl * fmid < 0:
+            rival = (lival + rival) / 2
+            fr = fmid
+        else:
+            lival = (lival + rival) / 2
+            fl = fmid
+
+        if abs(rival - lival) < ival_size:
+            break
 
 
     # TODO: calculate final approximation to root
     root = np.float64(0.0)
+    root = (lival + rival) / 2
+
+    print(root)
 
     return root
 
@@ -74,6 +89,7 @@ def find_root_newton(f: object, df: object, start: np.inexact, n_iters_max: int 
     root = start
 
     # TODO: chose meaningful convergence criterion eps, e.g 10 * eps
+    convergence_criterion = 10 * np.finfo(np.float64).eps
 
     # Initialize iteration
     fc = f(root)
@@ -81,12 +97,22 @@ def find_root_newton(f: object, df: object, start: np.inexact, n_iters_max: int 
     n_iterations = 0
 
     # TODO: loop until convergence criterion eps is met
-
+    for i in range(n_iters_max):
         # TODO: return root and n_iters_max+1 if abs(derivative) is below f_eps or abs(root) is above 1e5 (to avoid divergence)
+        n_iterations += 1
+        if abs(dfc) < convergence_criterion or abs(root) > 1e5:
+            break
 
         # TODO: update root value and function/dfunction values
+        root = root - fc / dfc
+        fc = f(root)
+        dfc = df(root)
 
         # TODO: avoid infinite loops and return (root, n_iters_max+1)
+        if abs(fc) < convergence_criterion:
+            break
+
+    print(root)
 
     return root, n_iterations
 
@@ -112,15 +138,18 @@ def generate_newton_fractal(f: object, df: object, roots: np.ndarray, sampling: 
     result = np.zeros((sampling.shape[0], sampling.shape[1], 2), dtype=int)
 
     # TODO: iterate over sampling grid
-
+    for i in range(sampling.shape[0]):
+        for j in range(sampling.shape[1]):
             # TODO: run Newton iteration to find a root and the iterations for the sample (in maximum n_iters_max iterations)
-
+            root, n_iters = find_root_newton(f, df, sampling[i, j], n_iters_max)
+            
             # TODO: determine the index of the closest root from the roots array. The functions np.argmin and np.tile could be helpful.
-            # index = 0
-
+            index = np.argmin(np.abs(roots - root))
+            
             # TODO: write the index and the number of needed iterations to the result
-            # result[i, j] = np.array([index, n_iters_max+1])
+            result[i, j] = np.array([index, n_iters+1])
 
+    print("Result:" , result)
     return result
 
 
@@ -143,6 +172,12 @@ def surface_area(v: np.ndarray, f: np.ndarray) -> float:
     area = 0.0
 
     # TODO: iterate over all triangles and sum up their area
+    for i in range(f.shape[0]):
+        a = v[f[i][0]]
+        b = v[f[i][1]]
+        c = v[f[i][2]]
+
+        area += np.linalg.norm(np.cross(b - a, c - a)) / 2
 
     return area
 

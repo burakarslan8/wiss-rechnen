@@ -53,8 +53,8 @@ class Tests(unittest.TestCase):
         plt.show()
 
     def test_3_generate_newton_fractal(self):
-        size = 100 # size of the image
-        max_iterations = 200
+        size = 1000 # size of the image
+        max_iterations = 400
 
         for c, el in enumerate(fractal_functions[:]):
             f, df, roots, borders, name = el
