@@ -198,6 +198,25 @@ def surface_area_gradient(v: np.ndarray, f: np.ndarray) -> np.ndarray:
     gradient = np.zeros(v.shape)
 
     # TODO: iterate over all triangles and sum up the vertices gradients
+    for i in range(f.shape[0]):
+        a = v[f[i, 0]]
+        b = v[f[i, 1]]
+        c = v[f[i, 2]]
+
+        ac = a - c
+        bc = b - c
+        n0 = np.cross(bc, ac) / np.linalg.norm(np.cross(bc, ac))
+        gradient[f[i, 0]] -= np.cross(n0, bc)
+
+        ca = c - a
+        ba = b - a
+        n1 = np.cross(ca, ba) / np.linalg.norm(np.cross(ca, ba))
+        gradient[f[i, 1]] -= np.cross(n1, ca)
+
+        ab = a - b
+        cb = c - b
+        n2 = np.cross(ab, cb) / np.linalg.norm(np.cross(ab, cb))
+        gradient[f[i, 2]] -= np.cross(n2, ab)
 
     return gradient
 
@@ -221,20 +240,38 @@ def gradient_descent_step(v: np.ndarray, f: np.ndarray, c: np.ndarray, epsilon: 
 
 
     # TODO: calculate gradient and area before changing the surface
-    gradient = np.zeros_like(v)
-    area = 0.0
+    gradient = surface_area_gradient(v, f)
+    area = surface_area(v, f)
 
     # TODO: calculate indices of vertices whose position can be changed
-
+    indices = np.array([i for i in range(v.shape[0]) if i not in c])
+    print(c)
+    print(f)
+    print(indices)
     # TODO: find suitable step size so that area can be decreased, don't change v yet
     step = ste
+    new_v = v.copy()
+    for i in range(len(indices)):
+        new_v[indices[i]] = v[indices[i]] + step * gradient[indices[i]]
+    
+    new_area = surface_area(new_v, f)
+
+    while new_area > area and step > epsilon:
+        step *= fac
+        for i in range(len(indices)):
+            new_v[indices[i]] = v[indices[i]] + step * gradient[indices[i]]
+        new_area = surface_area(new_v, f)
+
 
     # TODO: now update vertex positions in v
-
+    for i in range(len(indices)):
+        v[indices[i]] = new_v[indices[i]]
     # TODO: Check if new area differs only epsilon from old area
     # Return (True, area, v, gradient) to show that we converged and otherwise (False, area, v, gradient)
-
-    return False, area, v, gradient
+    if abs(new_area - area) < epsilon:
+        return True, new_area, v, gradient
+    else:
+        return False, area, v, gradient
 
 
 if __name__ == '__main__':
